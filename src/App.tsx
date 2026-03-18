@@ -1,21 +1,24 @@
 // src/App.tsx
-import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabase";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import Login from "./pages/Login";
+import Cadastro from "./pages/Cadastro";
+import Painel from "./pages/Painel";
+import Admin from "./pages/Admin";
 
 function App() {
-  const [status, setStatus] = useState("Conectando...");
-
-  useEffect(() => {
-    supabase
-      .from("revendas")
-      .select("count")
-      .then(({ error }) => {
-        if (error) setStatus("Erro: " + error.message);
-        else setStatus("Banco conectado com sucesso!");
-      });
-  }, []);
-
-  return <h1>{status}</h1>;
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/painel" element={<Painel />} />
+          <Route path="/admin" element={<Admin />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
 export default App;
