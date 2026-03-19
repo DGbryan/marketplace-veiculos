@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 type Veiculo = {
   id: string;
@@ -38,8 +37,7 @@ export default function Painel() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
-  const { usuario, logout } = useAuth();
-  const navigate = useNavigate();
+  const { usuario } = useAuth();
 
   const {
     register,
@@ -99,32 +97,21 @@ export default function Painel() {
     setVeiculos((prev) => prev.filter((v) => v.id !== id));
   }
 
-  async function handleLogout() {
-    await logout();
-    navigate("/");
-  }
-
   return (
     <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.headerTitulo}>RevCar</h1>
-        <div style={styles.headerAcoes}>
-          <button
-            onClick={() => navigate("/catalogo")}
-            style={styles.botaoSecundario}
-          >
-            Ver catálogo
-          </button>
+      <main style={styles.main}>
+        <div style={styles.topoBotao}>
+          <div style={styles.topo}>
+            <h2 style={styles.titulo}>Meus anúncios</h2>
+            <span style={styles.badge}>
+              {veiculos.length} ativo{veiculos.length !== 1 ? "s" : ""}
+            </span>
+          </div>
           <button onClick={() => setMostrarForm(true)} style={styles.botaoNovo}>
             + Anunciar veículo
           </button>
-          <button onClick={handleLogout} style={styles.botaoLogout}>
-            Sair
-          </button>
         </div>
-      </header>
 
-      <main style={styles.main}>
         {mostrarForm && (
           <div style={styles.formCard}>
             <div style={styles.formTopo}>
@@ -243,13 +230,6 @@ export default function Painel() {
           </div>
         )}
 
-        <div style={styles.topo}>
-          <h2 style={styles.titulo}>Meus anúncios</h2>
-          <span style={styles.badge}>
-            {veiculos.length} ativo{veiculos.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-
         {carregando ? (
           <p style={styles.mensagem}>Carregando...</p>
         ) : veiculos.length === 0 ? (
@@ -297,18 +277,25 @@ export default function Painel() {
 
 const styles = {
   container: { minHeight: "100vh", backgroundColor: "#f0f2f5" },
-  header: {
-    backgroundColor: "#1a1a2e",
-    padding: "16px 32px",
+  main: { maxWidth: "860px", margin: "0 auto", padding: "32px 20px" },
+  topoBotao: {
     display: "flex",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "24px",
   },
-  headerTitulo: { color: "#fff", fontSize: "18px", fontWeight: "600" },
-  headerAcoes: { display: "flex", gap: "12px", alignItems: "center" },
+  topo: { display: "flex", alignItems: "center", gap: "12px" },
+  titulo: { fontSize: "20px", fontWeight: "600", color: "#1a1a2e" },
+  badge: {
+    backgroundColor: "#1a1a2e",
+    color: "#fff",
+    fontSize: "12px",
+    padding: "3px 10px",
+    borderRadius: "99px",
+  },
   botaoNovo: {
-    backgroundColor: "#fff",
-    color: "#1a1a2e",
+    backgroundColor: "#1a1a2e",
+    color: "#fff",
     border: "none",
     padding: "8px 16px",
     borderRadius: "6px",
@@ -316,16 +303,6 @@ const styles = {
     fontSize: "13px",
     fontWeight: "600",
   },
-  botaoLogout: {
-    backgroundColor: "transparent",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.3)",
-    padding: "6px 16px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "13px",
-  },
-  main: { maxWidth: "860px", margin: "0 auto", padding: "32px 20px" },
   formCard: {
     backgroundColor: "#fff",
     borderRadius: "12px",
@@ -397,20 +374,6 @@ const styles = {
     fontSize: "13px",
     fontWeight: "500",
   },
-  topo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    marginBottom: "20px",
-  },
-  titulo: { fontSize: "20px", fontWeight: "600", color: "#1a1a2e" },
-  badge: {
-    backgroundColor: "#1a1a2e",
-    color: "#fff",
-    fontSize: "12px",
-    padding: "3px 10px",
-    borderRadius: "99px",
-  },
   mensagem: { color: "#888", textAlign: "center" as const },
   vazio: {
     textAlign: "center" as const,
@@ -466,14 +429,5 @@ const styles = {
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "12px",
-  },
-  botaoSecundario: {
-    backgroundColor: "transparent",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.3)",
-    padding: "6px 16px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "13px",
   },
 };

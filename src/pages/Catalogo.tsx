@@ -1,7 +1,6 @@
 // src/pages/Catalogo.tsx
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 type Veiculo = {
@@ -26,7 +25,6 @@ export default function Catalogo() {
   const [marca, setMarca] = useState("");
   const [cidade, setCidade] = useState("");
   const [precoMax, setPrecoMax] = useState("");
-  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,37 +75,8 @@ export default function Catalogo() {
     setPrecoMax("");
   }
 
-  function abrirWhatsApp(telefone: string, veiculo: Veiculo) {
-    const mensagem = `Olá! Vi o anúncio do ${veiculo.marca} ${veiculo.modelo} ${veiculo.ano} por R$ ${veiculo.preco.toLocaleString("pt-BR")} no RevCar. Tenho interesse!`;
-    const numero = telefone.replace(/\D/g, "");
-    window.open(
-      `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`,
-      "_blank",
-    );
-  }
-
-  async function handleLogout() {
-    await logout();
-    navigate("/");
-  }
-
   return (
     <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.headerTitulo}>RevCar</h1>
-        <div style={styles.headerAcoes}>
-          <button
-            onClick={() => navigate("/painel")}
-            style={styles.botaoSecundario}
-          >
-            Meus anúncios
-          </button>
-          <button onClick={handleLogout} style={styles.botaoLogout}>
-            Sair
-          </button>
-        </div>
-      </header>
-
       <main style={styles.main}>
         <div style={styles.topo}>
           <h2 style={styles.titulo}>Catálogo de veículos</h2>
@@ -184,14 +153,7 @@ export default function Catalogo() {
 
                 <div style={styles.cardRodape}>
                   <span style={styles.revenda}>{veiculo.revendas.nome}</span>
-                  <button
-                    onClick={() =>
-                      abrirWhatsApp(veiculo.revendas.telefone, veiculo)
-                    }
-                    style={styles.botaoWhatsApp}
-                  >
-                    WhatsApp
-                  </button>
+                  <span style={styles.verMais}>Ver detalhes →</span>
                 </div>
               </div>
             ))}
@@ -204,33 +166,6 @@ export default function Catalogo() {
 
 const styles = {
   container: { minHeight: "100vh", backgroundColor: "#f0f2f5" },
-  header: {
-    backgroundColor: "#1a1a2e",
-    padding: "16px 32px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerTitulo: { color: "#fff", fontSize: "18px", fontWeight: "600" },
-  headerAcoes: { display: "flex", gap: "12px", alignItems: "center" },
-  botaoSecundario: {
-    backgroundColor: "transparent",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.3)",
-    padding: "6px 16px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "13px",
-  },
-  botaoLogout: {
-    backgroundColor: "transparent",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.3)",
-    padding: "6px 16px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "13px",
-  },
   main: { maxWidth: "1100px", margin: "0 auto", padding: "32px 20px" },
   topo: {
     display: "flex",
@@ -339,14 +274,5 @@ const styles = {
     borderTop: "1px solid #f0f0f0",
   },
   revenda: { fontSize: "12px", color: "#888" },
-  botaoWhatsApp: {
-    backgroundColor: "#25D366",
-    color: "#fff",
-    border: "none",
-    padding: "7px 14px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: "500",
-  },
+  verMais: { fontSize: "12px", color: "#1a1a2e", fontWeight: "500" },
 };

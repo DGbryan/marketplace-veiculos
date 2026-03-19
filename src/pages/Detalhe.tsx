@@ -76,17 +76,14 @@ export default function Detalhe() {
 
   return (
     <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.headerTitulo}>RevCar</h1>
+      <main style={styles.main}>
         <button
           onClick={() => navigate("/catalogo")}
           style={styles.botaoVoltar}
         >
           ← Voltar ao catálogo
         </button>
-      </header>
 
-      <main style={styles.main}>
         <div style={styles.grid}>
           <div style={styles.colEsquerda}>
             <div style={styles.fotoPlaceholder}>
@@ -163,24 +160,18 @@ const styles = {
     backgroundColor: "#f0f2f5",
   },
   container: { minHeight: "100vh", backgroundColor: "#f0f2f5" },
-  header: {
-    backgroundColor: "#1a1a2e",
-    padding: "16px 32px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  headerTitulo: { color: "#fff", fontSize: "18px", fontWeight: "600" },
+  main: { maxWidth: "1000px", margin: "0 auto", padding: "32px 20px" },
   botaoVoltar: {
     backgroundColor: "transparent",
-    color: "#fff",
-    border: "1px solid rgba(255,255,255,0.3)",
-    padding: "6px 16px",
+    color: "#1a1a2e",
+    border: "1px solid #ddd",
+    padding: "8px 16px",
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "13px",
+    marginBottom: "24px",
+    display: "inline-block",
   },
-  main: { maxWidth: "1000px", margin: "0 auto", padding: "32px 20px" },
   grid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
