@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import Painel from "./pages/Painel";
 import Admin from "./pages/Admin";
+import Catalogo from "./pages/Catalogo";
 
 function App() {
   return (
@@ -19,6 +20,14 @@ function App() {
             element={
               <PrivateRoute role="revenda">
                 <Painel />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/catalogo"
+            element={
+              <PrivateRoute role="revenda">
+                <Catalogo />
               </PrivateRoute>
             }
           />

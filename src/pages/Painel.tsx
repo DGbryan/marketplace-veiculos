@@ -109,6 +109,12 @@ export default function Painel() {
       <header style={styles.header}>
         <h1 style={styles.headerTitulo}>RevCar</h1>
         <div style={styles.headerAcoes}>
+          <button
+            onClick={() => navigate("/catalogo")}
+            style={styles.botaoSecundario}
+          >
+            Ver catálogo
+          </button>
           <button onClick={() => setMostrarForm(true)} style={styles.botaoNovo}>
             + Anunciar veículo
           </button>
@@ -460,5 +466,14 @@ const styles = {
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "12px",
+  },
+  botaoSecundario: {
+    backgroundColor: "transparent",
+    color: "#fff",
+    border: "1px solid rgba(255,255,255,0.3)",
+    padding: "6px 16px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "13px",
   },
 };
