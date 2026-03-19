@@ -3,18 +3,38 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import CRMLayout from "./components/CRMLayout";
+import PublicLayout from "./components/PublicLayout";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import Painel from "./pages/Painel";
 import Admin from "./pages/Admin";
 import Catalogo from "./pages/Catalogo";
 import Detalhe from "./pages/Detalhe";
+import Home from "./pages/Home";
+import VeiculoPublico from "./pages/VeiculoPublico";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route
+            path="/home"
+            element={
+              <PublicLayout>
+                <Home />
+              </PublicLayout>
+            }
+          />
+          <Route
+            path="/veiculo-publico/:id"
+            element={
+              <PublicLayout>
+                <VeiculoPublico />
+              </PublicLayout>
+            }
+          />
+
           <Route path="/" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
 
