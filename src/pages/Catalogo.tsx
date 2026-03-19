@@ -155,7 +155,11 @@ export default function Catalogo() {
         ) : (
           <div style={styles.grid}>
             {filtrados.map((veiculo) => (
-              <div key={veiculo.id} style={styles.card}>
+              <div
+                key={veiculo.id}
+                style={{ ...styles.card, cursor: "pointer" }}
+                onClick={() => navigate(`/veiculo/${veiculo.id}`)}
+              >
                 <div style={styles.cardTopo}>
                   <h3 style={styles.cardTitulo}>
                     {veiculo.marca} {veiculo.modelo}

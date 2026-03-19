@@ -7,6 +7,7 @@ import Cadastro from "./pages/Cadastro";
 import Painel from "./pages/Painel";
 import Admin from "./pages/Admin";
 import Catalogo from "./pages/Catalogo";
+import Detalhe from "./pages/Detalhe";
 
 function App() {
   return (
@@ -28,6 +29,14 @@ function App() {
             element={
               <PrivateRoute role="revenda">
                 <Catalogo />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/veiculo/:id"
+            element={
+              <PrivateRoute role="revenda">
+                <Detalhe />
               </PrivateRoute>
             }
           />
