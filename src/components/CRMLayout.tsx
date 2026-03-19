@@ -14,14 +14,15 @@ export default function CRMLayout({ children }: Props) {
   );
 }
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   container: {
     display: "flex",
     minHeight: "100vh",
-    backgroundColor: "#f0f2f5",
+    backgroundColor: "#0F0F0F",
   },
   conteudo: {
     flex: 1,
     overflow: "auto",
+    backgroundColor: "#0F0F0F",
   },
 };

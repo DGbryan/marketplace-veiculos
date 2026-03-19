@@ -30,7 +30,6 @@ export default function Catalogo() {
   useEffect(() => {
     buscarVeiculos();
   }, []);
-
   useEffect(() => {
     filtrar();
   }, [marca, cidade, precoMax, veiculos]);
@@ -41,238 +40,379 @@ export default function Catalogo() {
       .select("*, revendas(nome, telefone)")
       .eq("status", "ativo")
       .order("created_at", { ascending: false });
-
     setVeiculos(data || []);
     setFiltrados(data || []);
     setCarregando(false);
   }
 
   function filtrar() {
-    let resultado = [...veiculos];
-
-    if (marca) {
-      resultado = resultado.filter((v) =>
-        v.marca.toLowerCase().includes(marca.toLowerCase()),
-      );
-    }
-
-    if (cidade) {
-      resultado = resultado.filter((v) =>
+    let r = [...veiculos];
+    if (marca)
+      r = r.filter((v) => v.marca.toLowerCase().includes(marca.toLowerCase()));
+    if (cidade)
+      r = r.filter((v) =>
         v.cidade.toLowerCase().includes(cidade.toLowerCase()),
       );
-    }
-
-    if (precoMax) {
-      resultado = resultado.filter((v) => v.preco <= parseFloat(precoMax));
-    }
-
-    setFiltrados(resultado);
-  }
-
-  function limparFiltros() {
-    setMarca("");
-    setCidade("");
-    setPrecoMax("");
+    if (precoMax) r = r.filter((v) => v.preco <= parseFloat(precoMax));
+    setFiltrados(r);
   }
 
   return (
     <div style={styles.container}>
-      <main style={styles.main}>
-        <div style={styles.topo}>
-          <h2 style={styles.titulo}>Catálogo de veículos</h2>
-          <span style={styles.badge}>
-            {filtrados.length} veículo{filtrados.length !== 1 ? "s" : ""}
-          </span>
+      <div style={styles.header}>
+        <div style={styles.headerTopo}>
+          <div style={styles.headerEsquerda}>
+            <h1 style={styles.titulo}>Catálogo</h1>
+            <span style={styles.contador}>{filtrados.length}</span>
+          </div>
         </div>
 
         <div style={styles.filtros}>
-          <input
-            type="text"
-            placeholder="Filtrar por marca..."
-            value={marca}
-            onChange={(e) => setMarca(e.target.value)}
-            style={styles.filtroInput}
-          />
-          <input
-            type="text"
-            placeholder="Filtrar por cidade..."
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            style={styles.filtroInput}
-          />
-          <input
-            type="number"
-            placeholder="Preço máximo (R$)..."
-            value={precoMax}
-            onChange={(e) => setPrecoMax(e.target.value)}
-            style={styles.filtroInput}
-          />
+          <div style={styles.filtroWrapper}>
+            <svg
+              style={styles.filtroIcone}
+              width="13"
+              height="13"
+              viewBox="0 0 13 13"
+              fill="none"
+            >
+              <circle
+                cx="5.5"
+                cy="5.5"
+                r="4"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M9 9L11.5 11.5"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Marca..."
+              value={marca}
+              onChange={(e) => setMarca(e.target.value)}
+              style={styles.filtroInput}
+            />
+          </div>
+          <div style={styles.filtroWrapper}>
+            <svg
+              style={styles.filtroIcone}
+              width="13"
+              height="13"
+              viewBox="0 0 13 13"
+              fill="none"
+            >
+              <path
+                d="M6.5 1.5C4.567 1.5 3 3.067 3 5C3 7.5 6.5 11.5 6.5 11.5C6.5 11.5 10 7.5 10 5C10 3.067 8.433 1.5 6.5 1.5Z"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="1.5"
+              />
+              <circle cx="6.5" cy="5" r="1" fill="rgba(255,255,255,0.3)" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Cidade..."
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+              style={styles.filtroInput}
+            />
+          </div>
+          <div style={styles.filtroWrapper}>
+            <svg
+              style={styles.filtroIcone}
+              width="13"
+              height="13"
+              viewBox="0 0 13 13"
+              fill="none"
+            >
+              <circle
+                cx="6.5"
+                cy="6.5"
+                r="5"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M6.5 3.5V6.5L8 8"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              type="number"
+              placeholder="Preço máx..."
+              value={precoMax}
+              onChange={(e) => setPrecoMax(e.target.value)}
+              style={styles.filtroInput}
+            />
+          </div>
           {(marca || cidade || precoMax) && (
-            <button onClick={limparFiltros} style={styles.botaoLimpar}>
-              Limpar filtros
+            <button
+              onClick={() => {
+                setMarca("");
+                setCidade("");
+                setPrecoMax("");
+              }}
+              style={styles.botaoLimpar}
+            >
+              Limpar
             </button>
           )}
         </div>
+      </div>
 
+      <div style={styles.conteudo}>
         {carregando ? (
-          <p style={styles.mensagem}>Carregando veículos...</p>
+          <div style={styles.estado}>
+            <p style={styles.estadoTexto}>Carregando veículos...</p>
+          </div>
         ) : filtrados.length === 0 ? (
-          <div style={styles.vazio}>
-            <p style={styles.vazioTexto}>Nenhum veículo encontrado</p>
-            <p style={styles.vazioSub}>Tente ajustar os filtros de busca.</p>
+          <div style={styles.estado}>
+            <p style={styles.estadoTexto}>Nenhum veículo encontrado</p>
+            <p style={styles.estadoSub}>Tente ajustar os filtros</p>
           </div>
         ) : (
           <div style={styles.grid}>
             {filtrados.map((veiculo) => (
               <div
                 key={veiculo.id}
-                style={{ ...styles.card, cursor: "pointer" }}
+                style={styles.card}
                 onClick={() => navigate(`/veiculo/${veiculo.id}`)}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor =
+                    "rgba(255,255,255,0.15)";
+                  (e.currentTarget as HTMLDivElement).style.backgroundColor =
+                    "#1E1E1E";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor =
+                    "rgba(255,255,255,0.08)";
+                  (e.currentTarget as HTMLDivElement).style.backgroundColor =
+                    "#1A1A1A";
+                }}
               >
-                <div style={styles.cardTopo}>
-                  <h3 style={styles.cardTitulo}>
-                    {veiculo.marca} {veiculo.modelo}
-                  </h3>
+                <div style={styles.cardHeader}>
+                  <div>
+                    <p style={styles.cardMarca}>{veiculo.marca}</p>
+                    <p style={styles.cardModelo}>{veiculo.modelo}</p>
+                  </div>
                   <span style={styles.cardAno}>{veiculo.ano}</span>
                 </div>
 
-                <div style={styles.cardPreco}>
+                <p style={styles.cardPreco}>
                   R$ {veiculo.preco.toLocaleString("pt-BR")}
-                </div>
+                </p>
 
-                <div style={styles.cardDetalhes}>
-                  <span style={styles.detalhe}>
+                <div style={styles.cardTags}>
+                  <span style={styles.tag}>
                     {veiculo.km.toLocaleString("pt-BR")} km
                   </span>
-                  <span style={styles.detalhe}>{veiculo.cidade}</span>
+                  <span style={styles.tag}>{veiculo.cidade}</span>
                 </div>
 
                 {veiculo.descricao && (
-                  <p style={styles.descricao}>{veiculo.descricao}</p>
+                  <p style={styles.cardDesc}>{veiculo.descricao}</p>
                 )}
 
                 <div style={styles.cardRodape}>
-                  <span style={styles.revenda}>{veiculo.revendas.nome}</span>
-                  <span style={styles.verMais}>Ver detalhes →</span>
+                  <span style={styles.cardRevenda}>
+                    {veiculo.revendas.nome}
+                  </span>
+                  <span style={styles.cardLink}>Ver detalhes →</span>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
 
-const styles = {
-  container: { minHeight: "100vh", backgroundColor: "#f0f2f5" },
-  main: { maxWidth: "1100px", margin: "0 auto", padding: "32px 20px" },
-  topo: {
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    minHeight: "100vh",
+    backgroundColor: "#0F0F0F",
+    display: "flex",
+    flexDirection: "column",
+  },
+  header: {
+    padding: "28px 32px 0",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
+  },
+  headerTopo: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    justifyContent: "space-between",
     marginBottom: "20px",
   },
-  titulo: { fontSize: "20px", fontWeight: "600", color: "#1a1a2e" },
-  badge: {
-    backgroundColor: "#1a1a2e",
-    color: "#fff",
-    fontSize: "12px",
-    padding: "3px 10px",
+  headerEsquerda: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  titulo: {
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "#FFFFFF",
+    margin: 0,
+  },
+  contador: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    color: "rgba(255,255,255,0.4)",
+    fontSize: "11px",
+    padding: "2px 8px",
     borderRadius: "99px",
+    fontWeight: "500",
   },
   filtros: {
     display: "flex",
-    gap: "12px",
-    marginBottom: "24px",
-    flexWrap: "wrap" as const,
+    gap: "8px",
+    paddingBottom: "16px",
+    flexWrap: "wrap",
     alignItems: "center",
   },
+  filtroWrapper: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "6px",
+    padding: "0 10px",
+    height: "32px",
+  },
+  filtroIcone: {
+    flexShrink: 0,
+  },
   filtroInput: {
-    padding: "9px 14px",
-    borderRadius: "8px",
-    border: "1px solid #ddd",
-    fontSize: "13px",
+    backgroundColor: "transparent",
+    border: "none",
     outline: "none",
-    backgroundColor: "#fff",
-    minWidth: "200px",
+    color: "#FFFFFF",
+    fontSize: "13px",
+    width: "130px",
   },
   botaoLimpar: {
-    padding: "9px 16px",
     backgroundColor: "transparent",
-    color: "#e53e3e",
-    border: "1px solid #e53e3e",
-    borderRadius: "8px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "6px",
+    color: "rgba(255,255,255,0.35)",
+    fontSize: "12px",
+    padding: "0 12px",
+    height: "32px",
     cursor: "pointer",
-    fontSize: "13px",
   },
-  mensagem: { color: "#888", textAlign: "center" as const },
-  vazio: {
-    textAlign: "center" as const,
-    padding: "60px 20px",
-    backgroundColor: "#fff",
-    borderRadius: "12px",
+  conteudo: {
+    padding: "24px 32px",
+    flex: 1,
   },
-  vazioTexto: {
-    fontSize: "16px",
-    fontWeight: "500",
-    color: "#333",
-    marginBottom: "6px",
+  estado: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "80px 0",
+    gap: "8px",
   },
-  vazioSub: { fontSize: "13px", color: "#888" },
+  estadoTexto: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: "14px",
+    margin: 0,
+  },
+  estadoSub: {
+    color: "rgba(255,255,255,0.2)",
+    fontSize: "12px",
+    margin: 0,
+  },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-    gap: "16px",
+    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+    gap: "12px",
   },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+    backgroundColor: "#1A1A1A",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "10px",
+    padding: "16px",
+    cursor: "pointer",
+    transition: "border-color 0.15s, background-color 0.15s",
     display: "flex",
-    flexDirection: "column" as const,
+    flexDirection: "column",
     gap: "10px",
   },
-  cardTopo: {
+  cardHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  cardTitulo: { fontSize: "15px", fontWeight: "600", color: "#1a1a2e" },
+  cardMarca: {
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.3)",
+    margin: 0,
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+  },
+  cardModelo: {
+    fontSize: "15px",
+    fontWeight: "500",
+    color: "#FFFFFF",
+    margin: "2px 0 0",
+  },
   cardAno: {
-    fontSize: "12px",
-    color: "#888",
-    backgroundColor: "#f5f5f5",
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.25)",
+    backgroundColor: "rgba(255,255,255,0.06)",
     padding: "3px 8px",
     borderRadius: "4px",
   },
   cardPreco: {
     fontSize: "20px",
-    fontWeight: "700",
-    color: "#2d7a3a",
+    fontWeight: "600",
+    color: "#4ADE80",
+    margin: 0,
   },
-  cardDetalhes: { display: "flex", gap: "8px" },
-  detalhe: {
-    fontSize: "12px",
-    color: "#666",
-    backgroundColor: "#f5f5f5",
+  cardTags: {
+    display: "flex",
+    gap: "6px",
+  },
+  tag: {
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.4)",
+    backgroundColor: "rgba(255,255,255,0.06)",
     padding: "3px 8px",
     borderRadius: "4px",
   },
-  descricao: {
+  cardDesc: {
     fontSize: "12px",
-    color: "#888",
-    lineHeight: "1.5",
+    color: "rgba(255,255,255,0.3)",
+    margin: 0,
+    lineHeight: 1.5,
+    overflow: "hidden",
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
   },
   cardRodape: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: "4px",
     paddingTop: "10px",
-    borderTop: "1px solid #f0f0f0",
+    borderTop: "1px solid rgba(255,255,255,0.06)",
+    marginTop: "auto",
   },
-  revenda: { fontSize: "12px", color: "#888" },
-  verMais: { fontSize: "12px", color: "#1a1a2e", fontWeight: "500" },
+  cardRevenda: {
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.25)",
+  },
+  cardLink: {
+    fontSize: "11px",
+    color: "#5B6AD0",
+    fontWeight: "500",
+  },
 };
