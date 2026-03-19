@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "../lib/supabase";
 import { Link } from "react-router-dom";
+import { buscarCNPJ, formatarTelefone, validarCNAE } from "../lib/brasilapi";
 
 const schema = z.object({
   nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -21,20 +22,72 @@ export default function Cadastro() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [buscandoCNPJ, setBuscandoCNPJ] = useState(false);
+  const [cnaeValido, setCnaeValido] = useState<boolean | null>(null);
+  const [erroCNPJ, setErroCNPJ] = useState("");
 
   const {
     register,
     handleSubmit,
+    setValue,
+    getValues,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
+  async function handleBuscarCNPJ() {
+    const cnpj = getValues("cnpj");
+    if (!cnpj || cnpj.replace(/\D/g, "").length < 14) {
+      setErroCNPJ("Digite o CNPJ completo antes de buscar");
+      return;
+    }
+
+    setBuscandoCNPJ(true);
+    setErroCNPJ("");
+    setCnaeValido(null);
+
+    try {
+      const dados = await buscarCNPJ(cnpj);
+
+      const situacao = dados.situacao_cadastral;
+      if (situacao && situacao !== 2 && situacao !== "ATIVA") {
+        setErroCNPJ("Este CNPJ está inativo na Receita Federal");
+        setBuscandoCNPJ(false);
+        return;
+      }
+
+      const cnaeOk = validarCNAE(dados.cnae_fiscal, dados.cnaes_secundarios);
+      setCnaeValido(cnaeOk);
+
+      setValue("nome", dados.razao_social);
+      setValue("cidade", `${dados.municipio} - ${dados.uf}`);
+      setValue("telefone", formatarTelefone(dados.ddd_telefone_1));
+      if (dados.email) setValue("email", dados.email);
+
+      if (!cnaeOk) {
+        setErroCNPJ(
+          "Empresa não possui CNAE de revenda de veículos. Verifique com o admin.",
+        );
+      }
+    } catch (e: any) {
+      setErroCNPJ(e.message || "Erro ao buscar CNPJ. Tente novamente.");
+    }
+
+    setBuscandoCNPJ(false);
+  }
+
   async function onSubmit(data: FormData) {
+    if (cnaeValido === false) {
+      setErro(
+        "Cadastro bloqueado: empresa não possui CNAE de revenda de veículos.",
+      );
+      return;
+    }
+
     setCarregando(true);
     setErro("");
 
-    // 1. Cria o usuário no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.senha,
@@ -46,7 +99,6 @@ export default function Cadastro() {
       return;
     }
 
-    // 2. Cria a revenda na tabela revendas
     const { data: revenda, error: revendaError } = await supabase
       .from("revendas")
       .insert({
@@ -66,7 +118,6 @@ export default function Cadastro() {
       return;
     }
 
-    // 3. Cria o registro na tabela usuarios
     const { error: usuarioError } = await supabase.from("usuarios").insert({
       id: authData.user.id,
       revenda_id: revenda.id,
@@ -109,26 +160,42 @@ export default function Cadastro() {
 
         <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
           <div style={styles.campo}>
-            <label style={styles.label}>Nome da revenda</label>
-            <input
-              {...register("nome")}
-              placeholder="Ex: Auto Center Silva"
-              style={styles.input}
-            />
-            {errors.nome && (
-              <span style={styles.erro}>{errors.nome.message}</span>
+            <label style={styles.label}>CNPJ</label>
+            <div style={styles.cnpjRow}>
+              <input
+                {...register("cnpj")}
+                placeholder="00.000.000/0000-00"
+                style={{ ...styles.input, flex: 1 }}
+              />
+              <button
+                type="button"
+                onClick={handleBuscarCNPJ}
+                disabled={buscandoCNPJ}
+                style={styles.botaoBuscar}
+              >
+                {buscandoCNPJ ? "Buscando..." : "Buscar"}
+              </button>
+            </div>
+            {errors.cnpj && (
+              <span style={styles.erro}>{errors.cnpj.message}</span>
+            )}
+            {erroCNPJ && <span style={styles.erro}>{erroCNPJ}</span>}
+            {cnaeValido === true && (
+              <span style={styles.sucesso}>
+                ✓ CNAE de revenda de veículos validado
+              </span>
             )}
           </div>
 
           <div style={styles.campo}>
-            <label style={styles.label}>CNPJ</label>
+            <label style={styles.label}>Nome da revenda</label>
             <input
-              {...register("cnpj")}
-              placeholder="00.000.000/0000-00"
+              {...register("nome")}
+              placeholder="Preenchido automaticamente pelo CNPJ"
               style={styles.input}
             />
-            {errors.cnpj && (
-              <span style={styles.erro}>{errors.cnpj.message}</span>
+            {errors.nome && (
+              <span style={styles.erro}>{errors.nome.message}</span>
             )}
           </div>
 
@@ -137,19 +204,18 @@ export default function Cadastro() {
               <label style={styles.label}>Cidade</label>
               <input
                 {...register("cidade")}
-                placeholder="Ex: Florianópolis"
+                placeholder="Preenchido automaticamente"
                 style={styles.input}
               />
               {errors.cidade && (
                 <span style={styles.erro}>{errors.cidade.message}</span>
               )}
             </div>
-
             <div style={styles.campo}>
               <label style={styles.label}>Telefone</label>
               <input
                 {...register("telefone")}
-                placeholder="(48) 99999-9999"
+                placeholder="Preenchido automaticamente"
                 style={styles.input}
               />
               {errors.telefone && (
@@ -186,7 +252,14 @@ export default function Cadastro() {
 
           {erro && <p style={styles.erroGeral}>{erro}</p>}
 
-          <button type="submit" disabled={carregando} style={styles.botao}>
+          <button
+            type="submit"
+            disabled={carregando || cnaeValido === false}
+            style={{
+              ...styles.botao,
+              opacity: cnaeValido === false ? 0.5 : 1,
+            }}
+          >
             {carregando ? "Cadastrando..." : "Cadastrar revenda"}
           </button>
         </form>
@@ -237,6 +310,11 @@ const styles = {
     flexDirection: "column" as const,
     gap: "16px",
   },
+  cnpjRow: {
+    display: "flex",
+    gap: "8px",
+    alignItems: "center",
+  },
   grid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -259,9 +337,25 @@ const styles = {
     fontSize: "14px",
     outline: "none",
   },
+  botaoBuscar: {
+    padding: "10px 16px",
+    backgroundColor: "#1a1a2e",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: "500",
+    whiteSpace: "nowrap" as const,
+  },
   erro: {
     fontSize: "12px",
     color: "#e53e3e",
+  },
+  sucesso: {
+    fontSize: "12px",
+    color: "#2d7a3a",
+    fontWeight: "500",
   },
   erroGeral: {
     fontSize: "13px",
