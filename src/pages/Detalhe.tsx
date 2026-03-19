@@ -3,6 +3,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
+type Foto = {
+  id: string;
+  url: string;
+  ordem: number;
+};
+
 type Veiculo = {
   id: string;
   marca: string;
@@ -23,6 +29,8 @@ type Veiculo = {
 
 export default function Detalhe() {
   const [veiculo, setVeiculo] = useState<Veiculo | null>(null);
+  const [fotos, setFotos] = useState<Foto[]>([]);
+  const [fotoAtiva, setFotoAtiva] = useState(0);
   const [carregando, setCarregando] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
@@ -32,13 +40,21 @@ export default function Detalhe() {
   }, [id]);
 
   async function buscarVeiculo() {
-    const { data } = await supabase
-      .from("veiculos")
-      .select("*, revendas(nome, telefone, cidade, email)")
-      .eq("id", id)
-      .single();
+    const [{ data: veiculoData }, { data: fotosData }] = await Promise.all([
+      supabase
+        .from("veiculos")
+        .select("*, revendas(nome, telefone, cidade, email)")
+        .eq("id", id)
+        .single(),
+      supabase
+        .from("fotos_veiculos")
+        .select("*")
+        .eq("veiculo_id", id)
+        .order("ordem", { ascending: true }),
+    ]);
 
-    setVeiculo(data);
+    setVeiculo(veiculoData);
+    setFotos(fotosData || []);
     setCarregando(false);
   }
 
@@ -86,11 +102,37 @@ export default function Detalhe() {
 
         <div style={styles.grid}>
           <div style={styles.colEsquerda}>
-            <div style={styles.fotoPlaceholder}>
-              <span style={styles.fotoTexto}>
-                {veiculo.marca} {veiculo.modelo}
-              </span>
-            </div>
+            {fotos.length > 0 ? (
+              <div>
+                <img
+                  src={fotos[fotoAtiva].url}
+                  alt={`${veiculo.marca} ${veiculo.modelo}`}
+                  style={styles.fotoGrande}
+                />
+                {fotos.length > 1 && (
+                  <div style={styles.miniaturas}>
+                    {fotos.map((foto, i) => (
+                      <img
+                        key={foto.id}
+                        src={foto.url}
+                        alt={`foto ${i + 1}`}
+                        style={{
+                          ...styles.miniatura,
+                          ...(i === fotoAtiva ? styles.miniaturaAtiva : {}),
+                        }}
+                        onClick={() => setFotoAtiva(i)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={styles.fotoPlaceholder}>
+                <span style={styles.fotoTexto}>
+                  {veiculo.marca} {veiculo.modelo}
+                </span>
+              </div>
+            )}
           </div>
 
           <div style={styles.colDireita}>
@@ -179,6 +221,29 @@ const styles = {
     alignItems: "start",
   },
   colEsquerda: {},
+  fotoGrande: {
+    width: "100%",
+    height: "320px",
+    objectFit: "cover" as const,
+    borderRadius: "12px",
+    marginBottom: "10px",
+  },
+  miniaturas: {
+    display: "flex",
+    gap: "8px",
+    flexWrap: "wrap" as const,
+  },
+  miniatura: {
+    width: "72px",
+    height: "72px",
+    objectFit: "cover" as const,
+    borderRadius: "6px",
+    cursor: "pointer",
+    border: "2px solid transparent",
+  },
+  miniaturaAtiva: {
+    border: "2px solid #1a1a2e",
+  },
   fotoPlaceholder: {
     backgroundColor: "#1a1a2e",
     borderRadius: "12px",

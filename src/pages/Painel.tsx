@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
+import PhotoUpload from "../components/PhotoUpload";
 
 type Veiculo = {
   id: string;
@@ -37,6 +38,7 @@ export default function Painel() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
+  const [veiculoIdCriado, setVeiculoIdCriado] = useState<string | null>(null);
   const { usuario } = useAuth();
 
   const {
@@ -67,27 +69,30 @@ export default function Painel() {
     setSalvando(true);
     setErro("");
 
-    const { error } = await supabase.from("veiculos").insert({
-      revenda_id: usuario?.revenda_id,
-      marca: data.marca,
-      modelo: data.modelo,
-      ano: parseInt(data.ano),
-      preco: parseFloat(data.preco),
-      km: parseInt(data.km),
-      cidade: data.cidade,
-      descricao: data.descricao || "",
-      status: "ativo",
-    });
+    const { data: veiculoCriado, error } = await supabase
+      .from("veiculos")
+      .insert({
+        revenda_id: usuario?.revenda_id,
+        marca: data.marca,
+        modelo: data.modelo,
+        ano: parseInt(data.ano),
+        preco: parseFloat(data.preco),
+        km: parseInt(data.km),
+        cidade: data.cidade,
+        descricao: data.descricao || "",
+        status: "ativo",
+      })
+      .select()
+      .single();
 
-    if (error) {
+    if (error || !veiculoCriado) {
       setErro("Erro ao cadastrar veículo. Tente novamente.");
       setSalvando(false);
       return;
     }
 
+    setVeiculoIdCriado(veiculoCriado.id);
     reset();
-    setMostrarForm(false);
-    buscarVeiculos();
     setSalvando(false);
   }
 
@@ -115,118 +120,155 @@ export default function Painel() {
         {mostrarForm && (
           <div style={styles.formCard}>
             <div style={styles.formTopo}>
-              <h2 style={styles.formTitulo}>Novo anúncio</h2>
+              <h2 style={styles.formTitulo}>
+                {veiculoIdCriado ? "Adicionar fotos" : "Novo anúncio"}
+              </h2>
               <button
-                onClick={() => setMostrarForm(false)}
+                onClick={() => {
+                  setMostrarForm(false);
+                  setVeiculoIdCriado(null);
+                  reset();
+                }}
                 style={styles.botaoFechar}
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
-              <div style={styles.grid2}>
-                <div style={styles.campo}>
-                  <label style={styles.label}>Marca</label>
-                  <input
-                    {...register("marca")}
-                    placeholder="Ex: Toyota"
-                    style={styles.input}
-                  />
-                  {errors.marca && (
-                    <span style={styles.erro}>{errors.marca.message}</span>
-                  )}
+            {!veiculoIdCriado ? (
+              <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
+                <div style={styles.grid2}>
+                  <div style={styles.campo}>
+                    <label style={styles.label}>Marca</label>
+                    <input
+                      {...register("marca")}
+                      placeholder="Ex: Toyota"
+                      style={styles.input}
+                    />
+                    {errors.marca && (
+                      <span style={styles.erro}>{errors.marca.message}</span>
+                    )}
+                  </div>
+                  <div style={styles.campo}>
+                    <label style={styles.label}>Modelo</label>
+                    <input
+                      {...register("modelo")}
+                      placeholder="Ex: Corolla"
+                      style={styles.input}
+                    />
+                    {errors.modelo && (
+                      <span style={styles.erro}>{errors.modelo.message}</span>
+                    )}
+                  </div>
                 </div>
-                <div style={styles.campo}>
-                  <label style={styles.label}>Modelo</label>
-                  <input
-                    {...register("modelo")}
-                    placeholder="Ex: Corolla"
-                    style={styles.input}
-                  />
-                  {errors.modelo && (
-                    <span style={styles.erro}>{errors.modelo.message}</span>
-                  )}
-                </div>
-              </div>
 
-              <div style={styles.grid3}>
-                <div style={styles.campo}>
-                  <label style={styles.label}>Ano</label>
-                  <input
-                    {...register("ano")}
-                    placeholder="Ex: 2020"
-                    style={styles.input}
-                  />
-                  {errors.ano && (
-                    <span style={styles.erro}>{errors.ano.message}</span>
-                  )}
+                <div style={styles.grid3}>
+                  <div style={styles.campo}>
+                    <label style={styles.label}>Ano</label>
+                    <input
+                      {...register("ano")}
+                      placeholder="Ex: 2020"
+                      style={styles.input}
+                    />
+                    {errors.ano && (
+                      <span style={styles.erro}>{errors.ano.message}</span>
+                    )}
+                  </div>
+                  <div style={styles.campo}>
+                    <label style={styles.label}>Preço (R$)</label>
+                    <input
+                      {...register("preco")}
+                      placeholder="Ex: 85000"
+                      style={styles.input}
+                    />
+                    {errors.preco && (
+                      <span style={styles.erro}>{errors.preco.message}</span>
+                    )}
+                  </div>
+                  <div style={styles.campo}>
+                    <label style={styles.label}>Quilometragem</label>
+                    <input
+                      {...register("km")}
+                      placeholder="Ex: 45000"
+                      style={styles.input}
+                    />
+                    {errors.km && (
+                      <span style={styles.erro}>{errors.km.message}</span>
+                    )}
+                  </div>
                 </div>
-                <div style={styles.campo}>
-                  <label style={styles.label}>Preço (R$)</label>
-                  <input
-                    {...register("preco")}
-                    placeholder="Ex: 85000"
-                    style={styles.input}
-                  />
-                  {errors.preco && (
-                    <span style={styles.erro}>{errors.preco.message}</span>
-                  )}
-                </div>
-                <div style={styles.campo}>
-                  <label style={styles.label}>Quilometragem</label>
-                  <input
-                    {...register("km")}
-                    placeholder="Ex: 45000"
-                    style={styles.input}
-                  />
-                  {errors.km && (
-                    <span style={styles.erro}>{errors.km.message}</span>
-                  )}
-                </div>
-              </div>
 
-              <div style={styles.campo}>
-                <label style={styles.label}>Cidade</label>
-                <input
-                  {...register("cidade")}
-                  placeholder="Ex: Florianópolis"
-                  style={styles.input}
+                <div style={styles.campo}>
+                  <label style={styles.label}>Cidade</label>
+                  <input
+                    {...register("cidade")}
+                    placeholder="Ex: Florianópolis"
+                    style={styles.input}
+                  />
+                  {errors.cidade && (
+                    <span style={styles.erro}>{errors.cidade.message}</span>
+                  )}
+                </div>
+
+                <div style={styles.campo}>
+                  <label style={styles.label}>Descrição (opcional)</label>
+                  <textarea
+                    {...register("descricao")}
+                    placeholder="Detalhes adicionais sobre o veículo..."
+                    style={styles.textarea}
+                    rows={3}
+                  />
+                </div>
+
+                {erro && <p style={styles.erroGeral}>{erro}</p>}
+
+                <div style={styles.formBotoes}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarForm(false);
+                      reset();
+                    }}
+                    style={styles.botaoCancelar}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={salvando}
+                    style={styles.botaoSalvar}
+                  >
+                    {salvando ? "Salvando..." : "Publicar anúncio"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div>
+                <PhotoUpload
+                  veiculoId={veiculoIdCriado}
+                  onUploadConcluido={() => {
+                    setVeiculoIdCriado(null);
+                    setMostrarForm(false);
+                    buscarVeiculos();
+                  }}
                 />
-                {errors.cidade && (
-                  <span style={styles.erro}>{errors.cidade.message}</span>
-                )}
-              </div>
-
-              <div style={styles.campo}>
-                <label style={styles.label}>Descrição (opcional)</label>
-                <textarea
-                  {...register("descricao")}
-                  placeholder="Detalhes adicionais sobre o veículo..."
-                  style={styles.textarea}
-                  rows={3}
-                />
-              </div>
-
-              {erro && <p style={styles.erroGeral}>{erro}</p>}
-
-              <div style={styles.formBotoes}>
                 <button
                   type="button"
-                  onClick={() => setMostrarForm(false)}
-                  style={styles.botaoCancelar}
+                  onClick={() => {
+                    setVeiculoIdCriado(null);
+                    setMostrarForm(false);
+                    buscarVeiculos();
+                  }}
+                  style={{
+                    ...styles.botaoCancelar,
+                    marginTop: "12px",
+                    width: "100%",
+                  }}
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={salvando}
-                  style={styles.botaoSalvar}
-                >
-                  {salvando ? "Salvando..." : "Publicar anúncio"}
+                  Pular — adicionar fotos depois
                 </button>
               </div>
-            </form>
+            )}
           </div>
         )}
 
