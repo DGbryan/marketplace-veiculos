@@ -8,7 +8,7 @@ import { useNavigate, Link } from "react-router-dom";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
-  senha: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  senha: z.string().min(6, "Mínimo 6 caracteres"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -50,7 +50,7 @@ export default function Login() {
     if (usuario?.role === "admin") {
       navigate("/admin");
     } else {
-      navigate("/painel");
+      navigate("/catalogo");
     }
 
     setCarregando(false);
@@ -58,137 +58,298 @@ export default function Login() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.titulo}>RevCar</h1>
-        <p style={styles.subtitulo}>Acesse sua conta</p>
-
-        <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
-          <div style={styles.campo}>
-            <label style={styles.label}>Email</label>
-            <input
-              {...register("email")}
-              type="email"
-              placeholder="seu@email.com"
-              style={styles.input}
-            />
-            {errors.email && (
-              <span style={styles.erro}>{errors.email.message}</span>
-            )}
+      <div style={styles.esquerda}>
+        <div style={styles.esquerdaConteudo}>
+          <div style={styles.logo}>
+            <div style={styles.logoIcone}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect width="20" height="20" rx="6" fill="#5B6AD0" />
+                <path
+                  d="M6 10L8.5 12.5L14 7"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <span style={styles.logoNome}>RevCar</span>
           </div>
 
-          <div style={styles.campo}>
-            <label style={styles.label}>Senha</label>
-            <input
-              {...register("senha")}
-              type="password"
-              placeholder="••••••"
-              style={styles.input}
-            />
-            {errors.senha && (
-              <span style={styles.erro}>{errors.senha.message}</span>
-            )}
+          <div style={styles.textos}>
+            <h1 style={styles.titulo}>Bem-vindo de volta</h1>
+            <p style={styles.subtitulo}>
+              Entre na sua conta para acessar o marketplace B2B
+            </p>
           </div>
 
-          {erro && <p style={styles.erroGeral}>{erro}</p>}
+          <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
+            <div style={styles.campo}>
+              <label style={styles.label}>Email</label>
+              <input
+                {...register("email")}
+                type="email"
+                placeholder="seu@email.com"
+                style={styles.input}
+              />
+              {errors.email && (
+                <span style={styles.erroMsg}>{errors.email.message}</span>
+              )}
+            </div>
 
-          <button type="submit" disabled={carregando} style={styles.botao}>
-            {carregando ? "Entrando..." : "Entrar"}
-          </button>
-        </form>
+            <div style={styles.campo}>
+              <label style={styles.label}>Senha</label>
+              <input
+                {...register("senha")}
+                type="password"
+                placeholder="••••••••"
+                style={styles.input}
+              />
+              {errors.senha && (
+                <span style={styles.erroMsg}>{errors.senha.message}</span>
+              )}
+            </div>
 
-        <p style={styles.link}>
-          Não tem conta?{" "}
-          <Link to="/cadastro" style={styles.linkTexto}>
-            Cadastre sua revenda
-          </Link>
-        </p>
+            {erro && <p style={styles.erroGeral}>{erro}</p>}
+
+            <button type="submit" disabled={carregando} style={styles.botao}>
+              {carregando ? "Entrando..." : "Entrar"}
+            </button>
+          </form>
+
+          <p style={styles.rodape}>
+            Não tem conta?{" "}
+            <Link to="/cadastro" style={styles.link}>
+              Cadastre sua revenda
+            </Link>
+          </p>
+
+          <p style={styles.rodape}>
+            <Link to="/home" style={styles.linkSutil}>
+              Ver vitrine pública →
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      <div style={styles.direita}>
+        <div style={styles.direitaConteudo}>
+          <div style={styles.destaque}>
+            <p style={styles.destaqueNumero}>B2B</p>
+            <p style={styles.destaqueTitulo}>
+              Marketplace exclusivo para revendas
+            </p>
+            <p style={styles.destaqueSub}>
+              Compre e venda veículos com preço de atacado diretamente com
+              outras revendas.
+            </p>
+          </div>
+          <div style={styles.features}>
+            {[
+              "Preços de atacado entre revendas",
+              "Validação automática de CNPJ e CNAE",
+              "Chat direto entre revendas",
+              "Catálogo completo com filtros",
+            ].map((f, i) => (
+              <div key={i} style={styles.featureItem}>
+                <div style={styles.featureIcone}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2 6L5 9L10 3"
+                      stroke="#4ADE80"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <span style={styles.featureTexto}>{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   container: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
     minHeight: "100vh",
+    backgroundColor: "#0F0F0F",
+  },
+  esquerda: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f0f2f5",
-  },
-  card: {
-    backgroundColor: "#fff",
     padding: "40px",
-    borderRadius: "12px",
+    borderRight: "1px solid rgba(255,255,255,0.06)",
+  },
+  esquerdaConteudo: {
     width: "100%",
-    maxWidth: "400px",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+    maxWidth: "360px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "28px",
+  },
+  logo: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  logoIcone: {
+    display: "flex",
+    alignItems: "center",
+  },
+  logoNome: {
+    fontSize: "18px",
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  textos: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
   },
   titulo: {
-    fontSize: "28px",
-    fontWeight: "bold",
-    color: "#1a1a2e",
-    textAlign: "center" as const,
-    marginBottom: "4px",
+    fontSize: "22px",
+    fontWeight: "600",
+    color: "#FFFFFF",
+    margin: 0,
   },
   subtitulo: {
-    fontSize: "14px",
-    color: "#888",
-    textAlign: "center" as const,
-    marginBottom: "28px",
+    fontSize: "13px",
+    color: "rgba(255,255,255,0.4)",
+    margin: 0,
+    lineHeight: 1.5,
   },
   form: {
     display: "flex",
-    flexDirection: "column" as const,
-    gap: "16px",
+    flexDirection: "column",
+    gap: "14px",
   },
   campo: {
     display: "flex",
-    flexDirection: "column" as const,
+    flexDirection: "column",
     gap: "6px",
   },
   label: {
-    fontSize: "14px",
+    fontSize: "12px",
     fontWeight: "500",
-    color: "#333",
+    color: "rgba(255,255,255,0.5)",
   },
   input: {
-    padding: "10px 14px",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "8px",
-    border: "1px solid #ddd",
+    padding: "10px 14px",
+    color: "#FFFFFF",
     fontSize: "14px",
     outline: "none",
   },
-  erro: {
-    fontSize: "12px",
-    color: "#e53e3e",
+  erroMsg: {
+    fontSize: "11px",
+    color: "#F87171",
   },
   erroGeral: {
-    fontSize: "13px",
-    color: "#e53e3e",
-    textAlign: "center" as const,
-    backgroundColor: "#fff5f5",
-    padding: "8px",
-    borderRadius: "6px",
+    fontSize: "12px",
+    color: "#F87171",
+    backgroundColor: "rgba(248,113,113,0.08)",
+    border: "1px solid rgba(248,113,113,0.15)",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    margin: 0,
   },
   botao: {
-    padding: "12px",
-    backgroundColor: "#1a1a2e",
+    backgroundColor: "#5B6AD0",
     color: "#fff",
     border: "none",
+    padding: "11px",
     borderRadius: "8px",
-    fontSize: "15px",
+    fontSize: "14px",
     fontWeight: "500",
     cursor: "pointer",
     marginTop: "4px",
   },
-  link: {
-    textAlign: "center" as const,
+  rodape: {
     fontSize: "13px",
-    color: "#888",
-    marginTop: "20px",
+    color: "rgba(255,255,255,0.3)",
+    textAlign: "center",
+    margin: 0,
   },
-  linkTexto: {
-    color: "#1a1a2e",
+  link: {
+    color: "#8B96E9",
+    textDecoration: "none",
     fontWeight: "500",
+  },
+  linkSutil: {
+    color: "rgba(255,255,255,0.25)",
+    textDecoration: "none",
+    fontSize: "12px",
+  },
+  direita: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "40px",
+    backgroundColor: "#111111",
+  },
+  direitaConteudo: {
+    maxWidth: "380px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "32px",
+  },
+  destaque: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  destaqueNumero: {
+    fontSize: "11px",
+    color: "#5B6AD0",
+    fontWeight: "600",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    margin: 0,
+  },
+  destaqueTitulo: {
+    fontSize: "24px",
+    fontWeight: "600",
+    color: "#FFFFFF",
+    margin: 0,
+    lineHeight: 1.3,
+  },
+  destaqueSub: {
+    fontSize: "14px",
+    color: "rgba(255,255,255,0.4)",
+    margin: 0,
+    lineHeight: 1.6,
+  },
+  features: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  featureItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  featureIcone: {
+    width: "20px",
+    height: "20px",
+    borderRadius: "50%",
+    backgroundColor: "rgba(74,222,128,0.1)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  featureTexto: {
+    fontSize: "13px",
+    color: "rgba(255,255,255,0.5)",
   },
 };
