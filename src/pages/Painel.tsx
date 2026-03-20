@@ -60,7 +60,6 @@ export default function Painel() {
       .select("*")
       .eq("revenda_id", usuario?.revenda_id)
       .order("created_at", { ascending: false });
-
     setVeiculos(data || []);
     setCarregando(false);
   }
@@ -98,29 +97,40 @@ export default function Painel() {
 
   async function encerrarAnuncio(id: string) {
     await supabase.from("veiculos").update({ status: "vendido" }).eq("id", id);
-
     setVeiculos((prev) => prev.filter((v) => v.id !== id));
   }
 
   return (
     <div style={styles.container}>
-      <main style={styles.main}>
-        <div style={styles.topoBotao}>
-          <div style={styles.topo}>
-            <h2 style={styles.titulo}>Meus anúncios</h2>
-            <span style={styles.badge}>
-              {veiculos.length} ativo{veiculos.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <button onClick={() => setMostrarForm(true)} style={styles.botaoNovo}>
-            + Anunciar veículo
-          </button>
+      <div style={styles.header}>
+        <div style={styles.headerEsquerda}>
+          <h1 style={styles.titulo}>Meus anúncios</h1>
+          <span style={styles.contador}>{veiculos.length}</span>
         </div>
+        <button
+          onClick={() => {
+            setMostrarForm(true);
+            setVeiculoIdCriado(null);
+          }}
+          style={styles.botaoNovo}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path
+              d="M7 1V13M1 7H13"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+          Novo anúncio
+        </button>
+      </div>
 
-        {mostrarForm && (
-          <div style={styles.formCard}>
-            <div style={styles.formTopo}>
-              <h2 style={styles.formTitulo}>
+      {mostrarForm && (
+        <div style={styles.modal}>
+          <div style={styles.modalCard}>
+            <div style={styles.modalHeader}>
+              <h2 style={styles.modalTitulo}>
                 {veiculoIdCriado ? "Adicionar fotos" : "Novo anúncio"}
               </h2>
               <button
@@ -129,9 +139,16 @@ export default function Painel() {
                   setVeiculoIdCriado(null);
                   reset();
                 }}
-                style={styles.botaoFechar}
+                style={styles.modalFechar}
               >
-                ✕
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M3 3L13 13M13 3L3 13"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
             </div>
 
@@ -146,7 +163,7 @@ export default function Painel() {
                       style={styles.input}
                     />
                     {errors.marca && (
-                      <span style={styles.erro}>{errors.marca.message}</span>
+                      <span style={styles.erroMsg}>{errors.marca.message}</span>
                     )}
                   </div>
                   <div style={styles.campo}>
@@ -157,7 +174,9 @@ export default function Painel() {
                       style={styles.input}
                     />
                     {errors.modelo && (
-                      <span style={styles.erro}>{errors.modelo.message}</span>
+                      <span style={styles.erroMsg}>
+                        {errors.modelo.message}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -167,33 +186,33 @@ export default function Painel() {
                     <label style={styles.label}>Ano</label>
                     <input
                       {...register("ano")}
-                      placeholder="Ex: 2020"
+                      placeholder="2020"
                       style={styles.input}
                     />
                     {errors.ano && (
-                      <span style={styles.erro}>{errors.ano.message}</span>
+                      <span style={styles.erroMsg}>{errors.ano.message}</span>
                     )}
                   </div>
                   <div style={styles.campo}>
                     <label style={styles.label}>Preço (R$)</label>
                     <input
                       {...register("preco")}
-                      placeholder="Ex: 85000"
+                      placeholder="85000"
                       style={styles.input}
                     />
                     {errors.preco && (
-                      <span style={styles.erro}>{errors.preco.message}</span>
+                      <span style={styles.erroMsg}>{errors.preco.message}</span>
                     )}
                   </div>
                   <div style={styles.campo}>
                     <label style={styles.label}>Quilometragem</label>
                     <input
                       {...register("km")}
-                      placeholder="Ex: 45000"
+                      placeholder="45000"
                       style={styles.input}
                     />
                     {errors.km && (
-                      <span style={styles.erro}>{errors.km.message}</span>
+                      <span style={styles.erroMsg}>{errors.km.message}</span>
                     )}
                   </div>
                 </div>
@@ -206,15 +225,18 @@ export default function Painel() {
                     style={styles.input}
                   />
                   {errors.cidade && (
-                    <span style={styles.erro}>{errors.cidade.message}</span>
+                    <span style={styles.erroMsg}>{errors.cidade.message}</span>
                   )}
                 </div>
 
                 <div style={styles.campo}>
-                  <label style={styles.label}>Descrição (opcional)</label>
+                  <label style={styles.label}>
+                    Descrição{" "}
+                    <span style={styles.labelOpcional}>(opcional)</span>
+                  </label>
                   <textarea
                     {...register("descricao")}
-                    placeholder="Detalhes adicionais sobre o veículo..."
+                    placeholder="Detalhes adicionais..."
                     style={styles.textarea}
                     rows={3}
                   />
@@ -270,206 +292,350 @@ export default function Painel() {
               </div>
             )}
           </div>
-        )}
+        </div>
+      )}
 
+      <div style={styles.conteudo}>
         {carregando ? (
-          <p style={styles.mensagem}>Carregando...</p>
+          <div style={styles.estado}>
+            <p style={styles.estadoTexto}>Carregando...</p>
+          </div>
         ) : veiculos.length === 0 ? (
-          <div style={styles.vazio}>
-            <p style={styles.vazioTexto}>Nenhum anúncio ainda</p>
-            <p style={styles.vazioSub}>
-              Clique em "Anunciar veículo" para começar.
+          <div style={styles.estado}>
+            <p style={styles.estadoTexto}>Nenhum anúncio ainda</p>
+            <p style={styles.estadoSub}>
+              Clique em "Novo anúncio" para começar
             </p>
           </div>
         ) : (
           <div style={styles.lista}>
-            {veiculos.map((veiculo) => (
-              <div key={veiculo.id} style={styles.card}>
-                <div style={styles.cardInfo}>
-                  <h3 style={styles.cardTitulo}>
-                    {veiculo.marca} {veiculo.modelo} {veiculo.ano}
-                  </h3>
-                  <div style={styles.cardDetalhes}>
-                    <span style={styles.preco}>
-                      R$ {veiculo.preco.toLocaleString("pt-BR")}
-                    </span>
-                    <span style={styles.detalhe}>
+            {veiculos.map((veiculo, i) => (
+              <div
+                key={veiculo.id}
+                style={{
+                  ...styles.item,
+                  ...(i === 0
+                    ? {}
+                    : { borderTop: "1px solid rgba(255,255,255,0.06)" }),
+                }}
+              >
+                <div style={styles.itemEsquerda}>
+                  <div style={styles.itemInfo}>
+                    <p style={styles.itemMarca}>{veiculo.marca}</p>
+                    <p style={styles.itemModelo}>
+                      {veiculo.modelo}{" "}
+                      <span style={styles.itemAno}>{veiculo.ano}</span>
+                    </p>
+                  </div>
+                  <div style={styles.itemTags}>
+                    <span style={styles.tag}>
                       {veiculo.km.toLocaleString("pt-BR")} km
                     </span>
-                    <span style={styles.detalhe}>{veiculo.cidade}</span>
+                    <span style={styles.tag}>{veiculo.cidade}</span>
+                    <span style={styles.tagAtivo}>Ativo</span>
                   </div>
-                  {veiculo.descricao && (
-                    <p style={styles.descricao}>{veiculo.descricao}</p>
-                  )}
                 </div>
-                <button
-                  onClick={() => encerrarAnuncio(veiculo.id)}
-                  style={styles.botaoEncerrar}
-                >
-                  Encerrar
-                </button>
+
+                <div style={styles.itemDireita}>
+                  <p style={styles.itemPreco}>
+                    R$ {veiculo.preco.toLocaleString("pt-BR")}
+                  </p>
+                  <p style={styles.itemData}>
+                    {new Date(veiculo.created_at).toLocaleDateString("pt-BR")}
+                  </p>
+                  <button
+                    onClick={() => encerrarAnuncio(veiculo.id)}
+                    style={styles.botaoEncerrar}
+                  >
+                    Encerrar
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
 
-const styles = {
-  container: { minHeight: "100vh", backgroundColor: "#f0f2f5" },
-  main: { maxWidth: "860px", margin: "0 auto", padding: "32px 20px" },
-  topoBotao: {
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    minHeight: "100vh",
+    backgroundColor: "#0F0F0F",
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "24px",
+    flexDirection: "column",
   },
-  topo: { display: "flex", alignItems: "center", gap: "12px" },
-  titulo: { fontSize: "20px", fontWeight: "600", color: "#1a1a2e" },
-  badge: {
-    backgroundColor: "#1a1a2e",
-    color: "#fff",
-    fontSize: "12px",
-    padding: "3px 10px",
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "28px 32px 20px",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
+  },
+  headerEsquerda: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  titulo: {
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "#FFFFFF",
+    margin: 0,
+  },
+  contador: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    color: "rgba(255,255,255,0.4)",
+    fontSize: "11px",
+    padding: "2px 8px",
     borderRadius: "99px",
   },
   botaoNovo: {
-    backgroundColor: "#1a1a2e",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    backgroundColor: "#5B6AD0",
     color: "#fff",
     border: "none",
-    padding: "8px 16px",
+    padding: "7px 14px",
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "13px",
-    fontWeight: "600",
+    fontWeight: "500",
   },
-  formCard: {
-    backgroundColor: "#fff",
+  modal: {
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 50,
+    padding: "20px",
+  },
+  modalCard: {
+    backgroundColor: "#1A1A1A",
+    border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "12px",
     padding: "24px",
-    marginBottom: "24px",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+    width: "100%",
+    maxWidth: "520px",
+    maxHeight: "90vh",
+    overflowY: "auto",
   },
-  formTopo: {
+  modalHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "20px",
   },
-  formTitulo: { fontSize: "16px", fontWeight: "600", color: "#1a1a2e" },
-  botaoFechar: {
-    background: "none",
-    border: "none",
-    fontSize: "16px",
-    cursor: "pointer",
-    color: "#888",
+  modalTitulo: {
+    fontSize: "15px",
+    fontWeight: "600",
+    color: "#FFFFFF",
+    margin: 0,
   },
-  form: { display: "flex", flexDirection: "column" as const, gap: "14px" },
-  grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" },
-  grid3: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" },
-  campo: { display: "flex", flexDirection: "column" as const, gap: "5px" },
-  label: { fontSize: "13px", fontWeight: "500", color: "#333" },
+  modalFechar: {
+    backgroundColor: "transparent",
+    border: "none",
+    color: "rgba(255,255,255,0.3)",
+    cursor: "pointer",
+    padding: "4px",
+    display: "flex",
+    alignItems: "center",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "14px",
+  },
+  grid2: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "12px",
+  },
+  grid3: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "12px",
+  },
+  campo: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+  },
+  label: {
+    fontSize: "12px",
+    fontWeight: "500",
+    color: "rgba(255,255,255,0.5)",
+  },
+  labelOpcional: {
+    color: "rgba(255,255,255,0.25)",
+    fontWeight: "400",
+  },
   input: {
-    padding: "9px 12px",
-    borderRadius: "8px",
-    border: "1px solid #ddd",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "6px",
+    padding: "8px 12px",
+    color: "#FFFFFF",
     fontSize: "13px",
     outline: "none",
   },
   textarea: {
-    padding: "9px 12px",
-    borderRadius: "8px",
-    border: "1px solid #ddd",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "6px",
+    padding: "8px 12px",
+    color: "#FFFFFF",
     fontSize: "13px",
     outline: "none",
-    resize: "vertical" as const,
-    fontFamily: "sans-serif",
+    resize: "vertical",
+    fontFamily: "inherit",
   },
-  erro: { fontSize: "11px", color: "#e53e3e" },
+  erroMsg: {
+    fontSize: "11px",
+    color: "#F87171",
+  },
   erroGeral: {
-    fontSize: "13px",
-    color: "#e53e3e",
-    backgroundColor: "#fff5f5",
-    padding: "8px",
+    fontSize: "12px",
+    color: "#F87171",
+    backgroundColor: "rgba(248,113,113,0.1)",
+    padding: "8px 12px",
     borderRadius: "6px",
-    textAlign: "center" as const,
+    margin: 0,
   },
-  formBotoes: { display: "flex", gap: "10px", justifyContent: "flex-end" },
+  formBotoes: {
+    display: "flex",
+    gap: "8px",
+    justifyContent: "flex-end",
+    paddingTop: "4px",
+  },
   botaoCancelar: {
-    padding: "9px 20px",
-    backgroundColor: "#f5f5f5",
-    color: "#333",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
+    backgroundColor: "transparent",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "6px",
+    color: "rgba(255,255,255,0.4)",
     fontSize: "13px",
+    padding: "8px 16px",
+    cursor: "pointer",
   },
   botaoSalvar: {
-    padding: "9px 20px",
-    backgroundColor: "#1a1a2e",
-    color: "#fff",
+    backgroundColor: "#5B6AD0",
     border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
+    borderRadius: "6px",
+    color: "#fff",
     fontSize: "13px",
     fontWeight: "500",
+    padding: "8px 16px",
+    cursor: "pointer",
   },
-  mensagem: { color: "#888", textAlign: "center" as const },
-  vazio: {
-    textAlign: "center" as const,
-    padding: "60px 20px",
-    backgroundColor: "#fff",
-    borderRadius: "12px",
+  conteudo: {
+    flex: 1,
+    padding: "0 32px",
   },
-  vazioTexto: {
-    fontSize: "16px",
-    fontWeight: "500",
-    color: "#333",
-    marginBottom: "6px",
+  estado: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "80px 0",
+    gap: "8px",
   },
-  vazioSub: { fontSize: "13px", color: "#888" },
-  lista: { display: "flex", flexDirection: "column" as const, gap: "12px" },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: "12px",
-    padding: "20px 24px",
+  estadoTexto: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: "14px",
+    margin: 0,
+  },
+  estadoSub: {
+    color: "rgba(255,255,255,0.2)",
+    fontSize: "12px",
+    margin: 0,
+  },
+  lista: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  item: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    padding: "16px 0",
     gap: "16px",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
   },
-  cardInfo: { flex: 1 },
-  cardTitulo: {
-    fontSize: "15px",
-    fontWeight: "600",
-    color: "#1a1a2e",
-    marginBottom: "8px",
-  },
-  cardDetalhes: {
+  itemEsquerda: {
     display: "flex",
-    gap: "10px",
-    alignItems: "center",
-    marginBottom: "6px",
+    flexDirection: "column",
+    gap: "8px",
+    flex: 1,
   },
-  preco: { fontSize: "15px", fontWeight: "600", color: "#2d7a3a" },
-  detalhe: {
+  itemInfo: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: "8px",
+  },
+  itemMarca: {
+    fontSize: "10px",
+    color: "rgba(255,255,255,0.25)",
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    margin: 0,
+  },
+  itemModelo: {
+    fontSize: "14px",
+    fontWeight: "500",
+    color: "#FFFFFF",
+    margin: 0,
+  },
+  itemAno: {
     fontSize: "12px",
-    color: "#666",
-    backgroundColor: "#f5f5f5",
+    color: "rgba(255,255,255,0.3)",
+    fontWeight: "400",
+  },
+  itemTags: {
+    display: "flex",
+    gap: "6px",
+    flexWrap: "wrap",
+  },
+  tag: {
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.4)",
+    backgroundColor: "rgba(255,255,255,0.06)",
     padding: "3px 8px",
     borderRadius: "4px",
   },
-  descricao: { fontSize: "12px", color: "#888", marginTop: "4px" },
+  tagAtivo: {
+    fontSize: "11px",
+    color: "#4ADE80",
+    backgroundColor: "rgba(74,222,128,0.1)",
+    padding: "3px 8px",
+    borderRadius: "4px",
+  },
+  itemDireita: {
+    display: "flex",
+    alignItems: "center",
+    gap: "20px",
+    flexShrink: 0,
+  },
+  itemPreco: {
+    fontSize: "15px",
+    fontWeight: "600",
+    color: "#4ADE80",
+    margin: 0,
+  },
+  itemData: {
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.25)",
+    margin: 0,
+  },
   botaoEncerrar: {
-    backgroundColor: "#fff",
-    color: "#e53e3e",
-    border: "1px solid #e53e3e",
-    padding: "8px 16px",
+    backgroundColor: "transparent",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "6px",
-    cursor: "pointer",
+    color: "rgba(255,255,255,0.3)",
     fontSize: "12px",
+    padding: "5px 12px",
+    cursor: "pointer",
   },
 };
